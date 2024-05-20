@@ -1,0 +1,89 @@
+<.header>
+  Hyperion LED Mapping
+</.header>
+
+<div class="flex flex-row">
+  <div class="basis-1/4">
+    <h3>LED Instances</h3> 
+    <div>
+        <%= for instance <- @serverinfo["instance"] do %>
+            <button 
+              class={
+                "m-1 p-2 rounded-full text-xs " <>
+                if instance["running"], 
+                do: "bg-green-600", 
+                else: "bg-red-600"
+              } phx-value-select={instance["instance"]} 
+              phx-click="select"
+            >
+              <%= instance["friendly_name"] %>
+            </button>
+        <% end %>  
+    </div>
+    <hr class="mt-2 mb-2">
+
+    <div :if={@selected}>
+      <h3>Selected</h3>
+      <.form :let={f} action={}>
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+          <tbody>
+            <tr>
+              <td>LED´s</td>
+              <td><%= length(@leds) %></td>
+            </tr>
+            <tr>
+              <td>LED size</td>
+              <td>
+                <div class="w-20 flex">
+                  <div class="w-8">
+                    <.input field={f[:led_width]} class="w-1"/>
+                  </div>
+                  <span class="inline-block pt-3 m-1 text-lg align-middle">/</span>
+                  <div class="w-8">
+                    <.input field={f[:led_hight]} />
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </.form>
+    </div> 
+  </div>
+  <div class="basis-3/4">
+    <h3>Mapping</h3>
+    <div id="mapping" class="w-full aspect-[16/9] bg-slate-100 relative" phx-hook="MeasureDiv"> 
+        
+          <div 
+            id="draggable"
+            :if={@selected}
+            class="absolute bg-blue-100 cursor-move"
+            phx-value-instance={@selected}
+            style={VisualsAdmin.Hyperion.place_led_wrapper(@leds, @size, @position)}
+          >
+            <%= for led <- @leds do %>
+              <div 
+                class={"bg-blue-300 absolute"}
+                style={VisualsAdmin.Hyperion.place_led(led, @size, @position)}
+                phx-value-hmax={led["hmax"]}
+                phx-value-hmin={led["hmin"]}
+                phx-value-vmax={led["vmax"]}
+                phx-value-vmin={led["vmin"]}
+              >
+              
+              </div>
+            <% end %>
+          </div> 
+        
+    </div>
+    <div class="text-sm">size: <%= @size.width %>/<%= @size.height %> </div>
+  </div>
+</div>
+<hr class="mt-10">
+<div id="debug">
+  <h3>debug</h3>
+  <%= Kernel.inspect(@leds) %>
+  <!--< Kernel.inspect(dbg(@serverinfo["instance"])) %>-->
+  <!--< length(@serverinfo["leds"]) %>-->
+  <!--< Kernel.inspect(dbg(@serverinfo)) %>-->
+</div>

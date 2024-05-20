@@ -1,0 +1,25 @@
+<.header>
+  Mapping <%= @mapping.id %>
+  <:subtitle>This is a mapping record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/mappings/#{@mapping}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit mapping</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+</.list>
+
+<.back navigate={~p"/mappings"}>Back to mappings</.back>
+
+<.modal :if={@live_action == :edit} id="mapping-modal" show on_cancel={JS.patch(~p"/mappings/#{@mapping}")}>
+  <.live_component
+    module={VisualsAdminWeb.MappingLive.FormComponent}
+    id={@mapping.id}
+    title={@page_title}
+    action={@live_action}
+    mapping={@mapping}
+    patch={~p"/mappings/#{@mapping}"}
+  />
+</.modal>
