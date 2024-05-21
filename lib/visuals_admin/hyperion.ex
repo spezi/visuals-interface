@@ -32,9 +32,14 @@ defmodule VisualsAdmin.Hyperion do
 
 
 
-  def post_json(url, payload) do
-    headers = [{"Content-Type", "application/json"}]
+  def post_json(payload) do
+    url = "http://127.0.0.1:8090/json-rpc"
+    headers = [
+      {"Content-Type", "application/json"},
+      {"Authorization", "token 2c5717af-bc01-4400-872a-c01767b1075e"}
+    ]
     body = Jason.encode!(payload)
+    #dbg(headers)
 
     case HTTPoison.post(url, body, headers) do
       {:ok, %HTTPoison.Response{status_code: 200, body: response_body}} ->
@@ -173,6 +178,7 @@ defmodule VisualsAdmin.Hyperion do
     case Float.parse(string) do
       {float, _} -> float
       nil -> parse_integer(string)
+      :error -> 0.0
     end
   end
 
@@ -180,6 +186,7 @@ defmodule VisualsAdmin.Hyperion do
     case Integer.parse(string) do
       {integer, _} -> integer
       nil -> {:error, "Invalid number format"}
+      :error -> dbg(string)
     end
   end
 

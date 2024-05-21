@@ -3,7 +3,7 @@
 </.header>
 
 <div class="flex flex-row">
-  <div class="basis-1/4">
+  <div :if={@hyperion_connected} class="basis-1/4">
     <h3>LED Instances</h3> 
     <div>
         <%= for instance <- @serverinfo["instance"] do %>
@@ -53,11 +53,14 @@
             </tr>
           </tbody>
         </table>
-            <button class="px-4 py-2 font-semibold text-sm bg-cyan-500 text-white rounded-full shadow-sm" phx-click="safe" >
+            <button phx-disable-with="Saving..." class="px-4 py-2 font-semibold text-sm bg-cyan-500 text-white rounded-full shadow-sm" phx-click="save" phx-value-instance={@selected} >
               Save
             </button>
       </.form>
     </div> 
+  </div>
+  <div :if={!@hyperion_connected} class="basis-1/4 text-rose-700">
+    Hyperion not reachable !!
   </div>
   <div class="basis-3/4">
     <h3>Mapping</h3>
@@ -101,12 +104,14 @@
         </pre>
     </div>
     <div class="basis-1/4">
+        <.input type="textarea" name="hyperion_format" id="hyperion_format" class="" value={Jason.encode!(@leds, pretty: true)} />
         <pre>
           <%=
             pretty_json = Jason.encode!(@leds, pretty: true)
             raw(pretty_json) 
           %>
         </pre>
+
     </div>
   </div>
   <!--< Kernel.inspect(dbg(@serverinfo["instance"])) %>-->

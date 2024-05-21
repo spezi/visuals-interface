@@ -8,7 +8,6 @@ defmodule VisualsAdminWeb.MappingLive.Index do
   def mount(_params, _session, socket) do
 
     #http://192.168.1.28:8090/json-rpc
-    url = "http://127.0.0.1:8090/json-rpc"
 
     payload = %{
       "command" => "serverinfo",
@@ -19,7 +18,7 @@ defmodule VisualsAdminWeb.MappingLive.Index do
     #HyperionControl.fetch_and_print_pretty_json(url)
 
     #load initial Hyperion serverinfo
-    response = case Hyperion.post_json(url, payload) do
+    response = case Hyperion.post_json(payload) do
       {:ok, response} ->
         #IO.inspect(response, label: "Response")
         #dbg(response["info"])
@@ -27,12 +26,20 @@ defmodule VisualsAdminWeb.MappingLive.Index do
         response
       {:error, reason} ->
         IO.inspect(reason, label: "Error")
-        {:ok, assign(socket, :serverinfo, [])}
+        #{:ok, assign(socket, :serverinfo, [])}
+        %{"info" => %{"error" => true, "reason" => "Hyperion not reachable", "instance" => []}}
     end
+
+    hyperion_connected = case response do
+      %{"info" => %{"error" => true, "instance" => []}} -> false
+      _ -> true
+    end
+
 
     #{:ok, stream(socket, :mappings, Hyperion.list_mappings())}
     #{:ok, socket}
     {:ok, socket
+      |> assign(:hyperion_connected, hyperion_connected)
       |> assign(:serverinfo, response["info"])
       |> assign(:leds, [])
       |> assign(:leds_pixel, [])
@@ -52,6 +59,8 @@ defmodule VisualsAdminWeb.MappingLive.Index do
   def handle_event("size_change", %{"_target" => target, "led_height" => led_height, "led_width" => led_width}, socket) do
     #dbg(socket.assigns.leds)
     #dbg(socket.assigns.leds_pixel)
+    dbg(led_height)
+    dbg(led_width)
 
     leds_pixel_calc = Enum.map(socket.assigns.leds_pixel, fn led ->
       vmax = led.vmin + VisualsAdmin.Hyperion.parse_to_number(led_height)
@@ -70,7 +79,7 @@ defmodule VisualsAdminWeb.MappingLive.Index do
     leds = Enum.map(leds_pixel_calc, fn led ->
       {:ok, led_coordinates} = VisualsAdmin.Hyperion.get_led_coordinates(led, socket.assigns.size, socket.assigns.position)
 
-        dbg(led_coordinates)
+        #dbg(led_coordinates)
 
       %{
         "hmax" => led_coordinates.hmax,
@@ -91,10 +100,89 @@ defmodule VisualsAdminWeb.MappingLive.Index do
     }
   end
 
-  def handle_event("safe", %{"value" => ""}, socket) do
-    dbg(socket.assigns.leds)
+  def handle_event("save", %{"instance" => instance, "value" => _value}, socket) do
+    #dbg(socket.assigns.leds)
     #dbg(socket.assigns.leds_pixel)
-    {:noreply, socket}
+
+
+    #payload = %{
+    #  "command" => "serverinfo",
+    #  "subscribe" => ["all"],
+    #  "tan" => 1
+    #}
+
+    #changes = %{ "leds" => socket.assigns.leds }
+
+      #payload = %{
+      #  "command" => "config",
+      #  "setconfig" => changes,
+      #  "instance" => String.to_integer(instance)
+      #}
+
+      payload = %{
+        "command" => "config",
+        "subcommand" => "getconfig",
+        "tan" => 1
+      }
+
+      #payload = %{
+      #  command: "authorize",
+      #  subcommand: "login",
+      #  tan: 1,
+      #}
+
+      #payload = %{
+      #  "command" => "settings-update",
+      #  "data" => changes,
+      #  "instance" => 15
+      #}
+
+    dbg(payload)
+
+    #{"command":"settings-update","data":{"leds":[]},"instance":15}
+
+    #HyperionControl.fetch_and_print_pretty_json(url)
+
+    #load initial Hyperion config
+    config_response = case Hyperion.post_json(payload) do
+      {:ok, response} ->
+        response
+      {:error, reason} ->
+        IO.inspect(reason, label: "Error")
+        {:error, reason}
+    end
+
+    dbg(config_response)
+    config = Map.get(config_response, "info")
+
+    updated_config = Map.put(config, "leds", socket.assigns.leds)
+
+    dbg(updated_config)
+
+    payload = %{
+      "command" => "config",
+      "subcommand" => "setconfig",
+      "config" => updated_config,
+      "tan" => 1
+    }
+
+    #load initial Hyperion config
+    save = case Hyperion.post_json(payload) do
+      {:ok, response} ->
+        response
+      {:error, reason} ->
+        IO.inspect(reason, label: "Error")
+        {:error, reason}
+    end
+
+    dbg(save)
+    dbg(socket.assigns.selected)
+    dbg(instance)
+
+    {:noreply, socket
+      #|> assign(:selected, String.to_integer(instance))
+      #|> push_event("select-stripe", %{})
+    }
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
@@ -132,7 +220,7 @@ defmodule VisualsAdminWeb.MappingLive.Index do
     dbg(value["select"])
     #{:noreply, assign(socket, :temperature, new_temp)}
 
-    url = "http://127.0.0.1:8090/json-rpc"
+
 
     payload = %{
       "command" => "instance",
@@ -143,7 +231,7 @@ defmodule VisualsAdminWeb.MappingLive.Index do
     dbg(payload)
 
 
-    case Hyperion.post_json(url, payload) do
+    case Hyperion.post_json(payload) do
       {:ok, response} ->
         #IO.inspect(response, label: "Response")
         #dbg(response["info"])
@@ -158,7 +246,7 @@ defmodule VisualsAdminWeb.MappingLive.Index do
       "command" => "serverinfo"
     }
 
-    leds = case Hyperion.post_json(url, payload) do
+    leds = case Hyperion.post_json(payload) do
       {:ok, response} ->
         #IO.inspect(response, label: "Response")
         #dbg(response["info"]["leds"])
