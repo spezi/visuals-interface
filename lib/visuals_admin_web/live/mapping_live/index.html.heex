@@ -9,7 +9,7 @@
         <%= for instance <- @serverinfo["instance"] do %>
             <button 
               class={
-                "m-1 p-2 rounded-full text-xs " <>
+                "m-1 p-2 rounded-full text-xs font-semibold text-white shadow-sm " <>
                 if instance["running"], 
                 do: "bg-green-600", 
                 else: "bg-red-600"
@@ -23,8 +23,14 @@
     <hr class="mt-2 mb-2">
 
     <div :if={@selected}>
-      <h3>Selected</h3>
-      <.form :let={f} action={}>
+      <h3>Selected:
+        <%=
+          active_instance = Enum.find(@serverinfo["instance"], fn map -> map["instance"] == @selected end)
+          friendly_name = active_instance["friendly_name"]
+          friendly_name
+        %>
+      </h3>
+      <.form phx-change="size_change">
         <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
           <tbody>
             <tr>
@@ -34,19 +40,22 @@
             <tr>
               <td>LED size</td>
               <td>
-                <div class="w-20 flex">
-                  <div class="w-8">
-                    <.input field={f[:led_width]} class="w-1"/>
+                <div class="w-55 flex">
+                  <div class="w-20">
+                    <.input type="number" name="led_width" id="led_width" class="" value={@led_width} />
                   </div>
                   <span class="inline-block pt-3 m-1 text-lg align-middle">/</span>
-                  <div class="w-8">
-                    <.input field={f[:led_hight]} />
+                  <div class="w-20">
+                    <.input type="number" name="led_height" id="led_height" class="" value={@led_height} />
                   </div>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
+            <button class="px-4 py-2 font-semibold text-sm bg-cyan-500 text-white rounded-full shadow-sm" phx-click="safe" >
+              Save
+            </button>
       </.form>
     </div> 
   </div>
@@ -54,26 +63,26 @@
     <h3>Mapping</h3>
     <div id="mapping" class="w-full aspect-[16/9] bg-slate-100 relative" phx-hook="MeasureDiv"> 
         
-          <div 
+          <!--<div 
             id="draggable"
             :if={@selected}
             class="absolute bg-blue-100 cursor-move"
             phx-value-instance={@selected}
             style={VisualsAdmin.Hyperion.place_led_wrapper(@leds, @size, @position)}
-          >
-            <%= for led <- @leds do %>
+          >-->
+            <%= for led_pixel <- @leds_pixel do %>
               <div 
-                class={"bg-blue-300 absolute"}
-                style={VisualsAdmin.Hyperion.place_led(led, @size, @position)}
-                phx-value-hmax={led["hmax"]}
-                phx-value-hmin={led["hmin"]}
-                phx-value-vmax={led["vmax"]}
-                phx-value-vmin={led["vmin"]}
+                class={"bg-blue-300 absolute led"}
+                style={"width: #{@led_width}px; height: #{@led_height}px; top: #{led_pixel.vmin}px; left: #{led_pixel.hmin}px;"}
+                phx-value-hmax={led_pixel.hmax}
+                phx-value-hmin={led_pixel.hmin}
+                phx-value-vmax={led_pixel.vmax}
+                phx-value-vmin={led_pixel.vmin}
               >
               
               </div>
             <% end %>
-          </div> 
+          <!--</div>--> 
         
     </div>
     <div class="text-sm">size: <%= @size.width %>/<%= @size.height %> </div>
@@ -82,7 +91,24 @@
 <hr class="mt-10">
 <div id="debug">
   <h3>debug</h3>
-  <%= Kernel.inspect(@leds) %>
+  <div class="flex">
+    <div class="basis-1/4">
+        <pre>
+          <%=
+            pretty_json = Jason.encode!(@serverinfo, pretty: true)
+            raw(pretty_json) 
+          %>
+        </pre>
+    </div>
+    <div class="basis-1/4">
+        <pre>
+          <%=
+            pretty_json = Jason.encode!(@leds, pretty: true)
+            raw(pretty_json) 
+          %>
+        </pre>
+    </div>
+  </div>
   <!--< Kernel.inspect(dbg(@serverinfo["instance"])) %>-->
   <!--< length(@serverinfo["leds"]) %>-->
   <!--< Kernel.inspect(dbg(@serverinfo)) %>-->

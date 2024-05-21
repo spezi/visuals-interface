@@ -53,6 +53,80 @@ svg.setAttribute('height', '100%');
 svg.setAttribute('class', 'z-0 absolute');
 
 
+//document.addEventListener('DOMContentLoaded', function() {
+window.addEventListener("phx:select-stripe", (e) => {
+    console.log("select stripe")
+    console.log(e)
+
+    let leds = container.querySelectorAll('.led');
+    let first = leds[0]
+    let last = leds[leds.length -1]
+
+    //console.log(leds)
+    console.log(first)
+    console.log(last)
+});
+
+//document.addEventListener('DOMContentLoaded', function() {
+window.addEventListener("phx:select-stripe_bak", (e) => {
+
+    console.log(e)
+
+    let points = container.querySelectorAll('.point');
+    const lines = svg.querySelectorAll('line');
+    lines.forEach(line => line.remove());
+
+    container.addEventListener('mousedown', function(event) {
+        
+        console.log(event)
+
+        if (points.length < 2) {
+            const point = document.createElement('div');
+            point.style.top = (event.offsetY - 6) + 'px';
+            point.style.left = (event.offsetX - 6) + 'px';
+            point.className = "z-10 draggable point absolute";
+            point.setAttribute('phx-value-top', event.offsetY);
+            point.setAttribute('phx-value-left', event.offsetX);
+            container.appendChild(point);
+        }
+            
+        points = container.querySelectorAll('.point');
+
+        if (points.length == 2) {
+            console.log(points[0]);
+
+            points.forEach(point => {
+                //makeDraggable(point);
+            });
+
+            // Create a line element
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+            line.setAttribute('style', "stroke:black;stroke-width:4");
+            line.setAttribute('stroke', 'black'); // Set line color
+            line.setAttribute('stroke-width', '4'); // Set line width
+
+            // Append the line to the SVG
+            
+            console.log(svg)
+
+            
+            line.setAttribute('x1', points[0].getAttribute('phx-value-left'));
+            line.setAttribute('y1', points[0].getAttribute('phx-value-top'));
+            line.setAttribute('x2', points[1].getAttribute('phx-value-left'));
+            line.setAttribute('y2', points[1].getAttribute('phx-value-top'));
+            
+            svg.appendChild(line);
+            //line.stroke({ color: '#f06', width: 10, linecap: 'round' })
+            // Append the SVG to the parent div
+            container.appendChild(svg);
+        }  
+        //console.log(container)
+        //<svg width="500" height="500"><line x1="50" y1="50" x2="350" y2="350" stroke="black"/></svg>
+    });
+    });
+
+
 // Function to make an element draggable
 function makeDraggable(element) {
     let isDragging = false;
@@ -86,72 +160,6 @@ function makeDraggable(element) {
     });
 }
 
-//document.addEventListener('DOMContentLoaded', function() {
-window.addEventListener("phx:select-stripe", (e) => {
 
-    console.log(e)
-
-
-
-
-    let points = container.querySelectorAll('.point');
-    const lines = svg.querySelectorAll('line');
-    lines.forEach(line => line.remove());
-
-    container.addEventListener('mousedown', function(event) {
-        
-        console.log(event)
-
-        if (points.length < 2) {
-            const point = document.createElement('div');
-            point.style.top = (event.offsetY - 6) + 'px';
-            point.style.left = (event.offsetX - 6) + 'px';
-            point.className = "z-10 draggable point absolute";
-            point.setAttribute('phx-value-top', event.offsetY);
-            point.setAttribute('phx-value-left', event.offsetX);
-            container.appendChild(point);
-        }
-            
-        points = container.querySelectorAll('.point');
-
-        if (points.length == 2) {
-            console.log(points[0]);
-
-            points.forEach(point => {
-                makeDraggable(point);
-            });
-
-            // Create a line element
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-
-            line.setAttribute('style', "stroke:black;stroke-width:4");
-            line.setAttribute('stroke', 'black'); // Set line color
-            line.setAttribute('stroke-width', '4'); // Set line width
-
-            // Append the line to the SVG
-            
-            console.log(svg)
-
-            
-            line.setAttribute('x1', points[0].getAttribute('phx-value-left'));
-            line.setAttribute('y1', points[0].getAttribute('phx-value-top'));
-            line.setAttribute('x2', points[1].getAttribute('phx-value-left'));
-            line.setAttribute('y2', points[1].getAttribute('phx-value-top'));
-            
-            svg.appendChild(line);
-            //line.stroke({ color: '#f06', width: 10, linecap: 'round' })
-            // Append the SVG to the parent div
-            container.appendChild(svg);
-        }  
-
-        
-        
-        //console.log(container)
-        
-        
-
-        //<svg width="500" height="500"><line x1="50" y1="50" x2="350" y2="350" stroke="black"/></svg>
-    });
-});
 
 

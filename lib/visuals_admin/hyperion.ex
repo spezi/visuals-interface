@@ -62,11 +62,17 @@ defmodule VisualsAdmin.Hyperion do
      point * max_pixel
   end
 
+  def pixel_to_coordinate(pixel, max_pixel) do
+    #dbg(pixel)
+    #dbg(max_pixel)
+    pixel/max_pixel
+  end
+
   def led_width_or_height(min,max) do
     max - min
   end
 
-  def place_led(led, size, position) do
+  def get_led_pixel(led, size, position) do
     #Logger.info("pixel size: #{inspect(pixel_size)}")
     #Logger.info("LED: #{inspect(led)}")
 
@@ -74,27 +80,45 @@ defmodule VisualsAdmin.Hyperion do
     #Logger.info("size: #{inspect(size)}")
 
     led_pixel = %{
-      "hmax" => coordinate_to_pixel(led["hmax"], size.width),
-      "hmin" => coordinate_to_pixel(led["hmin"], size.width),
-      "vmax" => coordinate_to_pixel(led["vmax"], size.height),
-      "vmin" => coordinate_to_pixel(led["vmin"], size.height),
-      "width" => led_width_or_height(
+      hmax: coordinate_to_pixel(led["hmax"], size.width),
+      hmin: coordinate_to_pixel(led["hmin"], size.width),
+      vmax: coordinate_to_pixel(led["vmax"], size.height),
+      vmin: coordinate_to_pixel(led["vmin"], size.height),
+      width: led_width_or_height(
         coordinate_to_pixel(led["hmin"], size.width),
         coordinate_to_pixel(led["hmax"], size.width)
       ),
-      "height" => led_width_or_height(
+      height: led_width_or_height(
         coordinate_to_pixel(led["vmin"], size.height),
         coordinate_to_pixel(led["vmax"], size.height)
       ),
     }
 
     #Logger.info("LED: #{inspect(led_pixel)}")
-    #Logger.info("position: #{inspect(position)}")
-    #top-px
-    #left-px
-    #width-[px]
-    #height-[px]
-    "width: #{led_pixel["width"]}px; height: #{led_pixel["height"]}px; top: #{led_pixel["vmin"]}px; left: #{led_pixel["hmin"]}px;"
+
+    {:ok, led_pixel}
+
+  end
+
+  def get_led_coordinates(led, size, position) do
+    #Logger.info("pixel size: #{inspect(pixel_size)}")
+    #Logger.info("LED: #{inspect(led)}")
+
+    #Logger.info("LED: #{inspect(led)}")
+    #Logger.info("size: #{inspect(size)}")
+    #Logger.info("POSITION: #{inspect(position)}")
+
+    led_pixel = %{
+      hmax: pixel_to_coordinate(led.hmax, size.width),
+      hmin: pixel_to_coordinate(led.hmin, size.width),
+      vmax: pixel_to_coordinate(led.vmax, size.height),
+      vmin: pixel_to_coordinate(led.vmin, size.height)
+    }
+
+    #Logger.info("LED: #{inspect(led_pixel)}")
+
+    {:ok, led_pixel}
+
   end
 
   def place_led_wrapper(leds, size, position) do
@@ -143,6 +167,20 @@ defmodule VisualsAdmin.Hyperion do
     #to = {coordinate_to_pixel(last_led, size.width), coordinate_to_pixel(last_led, size.height)}
     #dbg(from)
 
+  end
+
+  def parse_to_number(string) do
+    case Float.parse(string) do
+      {float, _} -> float
+      nil -> parse_integer(string)
+    end
+  end
+
+  defp parse_integer(string) do
+    case Integer.parse(string) do
+      {integer, _} -> integer
+      nil -> {:error, "Invalid number format"}
+    end
   end
 
 
