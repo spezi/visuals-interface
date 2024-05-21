@@ -41,6 +41,7 @@ defmodule VisualsAdminWeb.MappingLive.Index do
     {:ok, socket
       |> assign(:hyperion_connected, hyperion_connected)
       |> assign(:serverinfo, response["info"])
+      |> assign(:current_config, %{})
       |> assign(:leds, [])
       |> assign(:leds_pixel, [])
       |> assign(:size, %{ width: 0, height: 0})
@@ -220,66 +221,54 @@ defmodule VisualsAdminWeb.MappingLive.Index do
     dbg(value["select"])
     #{:noreply, assign(socket, :temperature, new_temp)}
 
-
-
     payload = %{
       "command" => "instance",
       "subcommand" => "switchTo",
       "instance" => String.to_integer(value["select"])
     }
 
-    dbg(payload)
+    #dbg(payload)
 
-
-    case Hyperion.post_json(payload) do
+    switch = case Hyperion.post_json(payload) do
       {:ok, response} ->
         #IO.inspect(response, label: "Response")
         #dbg(response["info"])
         #{:ok, stream(socket, :hyperionserverinfo, response["instance"])}
-        {:ok, assign(socket, :serverinfo, response["info"])}
+        #{:ok, assign(socket, :serverinfo, response["info"])}
+        {:ok, response["info"]}
       {:error, reason} ->
         IO.inspect(reason, label: "Error")
-        {:ok, assign(socket, :serverinfo, [])}
+        {:error, reason}
     end
 
     payload = %{
-      "command" => "serverinfo"
+      "command" => "config",
+      "subcommand" => "getconfig",
+      "tan" => 1
     }
 
-    leds = case Hyperion.post_json(payload) do
+    current_config = case Hyperion.post_json(payload) do
       {:ok, response} ->
-        #IO.inspect(response, label: "Response")
-        #dbg(response["info"]["leds"])
-        #{:ok, stream(socket, :hyperionserverinfo, response["instance"])}
-
-        #{:ok, socket
-        #  |> assign(:serverinfo, response["info"])
-        #  |> assign(:leds, response["info"]["leds"])
-        #}
-        #dbg(response["info"]["instance"])
-        response["info"]["leds"]
-
+        response
       {:error, reason} ->
         IO.inspect(reason, label: "Error")
-        #{:ok, assign(socket, :serverinfo, [])}
-        []
+        %{"error" => reason, "leds" => []}
     end
 
+    dbg(current_config)
 
-    leds_pixel = []
 
-    #dbg(leds)
-
-    #leds_pixel = for led <- leds, do:
-    #  {:ok, led_pixel} = VisualsAdmin.Hyperion.get_led_pixel(led, socket.assigns.size, socket.assigns.position)
-    #  dbg(led_pixel)
-    #end
+    leds = case current_config["success"] do
+      true ->
+        info = Map.get(current_config, "info", %{})
+        Map.get(info, "leds", [])
+      false -> []
+    end
 
     leds_pixel = Enum.map(leds, fn led ->
       {:ok, led_pixel} = VisualsAdmin.Hyperion.get_led_pixel(led, socket.assigns.size, socket.assigns.position)
       led_pixel
     end)
-
     #dbg(leds_pixel)
 
     led_width = leds_pixel |> hd() |> Map.get(:width)
@@ -290,6 +279,7 @@ defmodule VisualsAdminWeb.MappingLive.Index do
       |> assign(:leds, leds)
       |> assign(:leds_pixel, leds_pixel)
       |> assign(:selected, String.to_integer(value["select"]))
+      |> assign(:current_config, current_config)
       |> assign(:led_width, led_width)
       |> assign(:led_height, led_height)
       |> push_event("select-stripe", %{})
@@ -303,8 +293,33 @@ defmodule VisualsAdminWeb.MappingLive.Index do
       width: width,
       height: height
     }
+
+    leds_pixel = Enum.map(socket.assigns.leds, fn led ->
+      {:ok, led_pixel} = VisualsAdmin.Hyperion.get_led_pixel(led, size, socket.assigns.position)
+      led_pixel
+    end)
+
+    dbg(leds_pixel)
+
+    led_width = if length(leds_pixel) > 0 do
+      leds_pixel |> hd() |> Map.get(:width)
+    else
+      0
+    end
+
+    led_height = if length(leds_pixel) > 0 do
+      leds_pixel |> hd() |> Map.get(:height)
+    else
+      0
+    end
+
     IO.puts("size: #{inspect(size)}")
-    {:noreply, assign(socket, size: size)}
+    {:noreply, socket
+      |> assign(size: size)
+      |> assign(leds_pixel: leds_pixel)
+      |> assign(:led_width, led_width)
+      |> assign(:led_height, led_height)
+    }
   end
 
   def handle_event("mapping_position", %{"top" => top, "left" => left}, socket) do

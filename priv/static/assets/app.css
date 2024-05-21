@@ -1341,6 +1341,30 @@ select {
   background-color: rgb(24 24 27 / var(--tw-bg-opacity));
 }
 
+.bg-opacity-75 {
+  --tw-bg-opacity: 0.75;
+}
+
+.bg-opacity-25 {
+  --tw-bg-opacity: 0.25;
+}
+
+.bg-\[url\(\'\/assets\/images\/stanzraum\.jpg\'\)\] {
+  background-image: url('/assets/images/stanzraum.jpg');
+}
+
+.bg-\[url\(\'\/images\/stanzraum\.jpg\'\)\] {
+  background-image: url('/images/stanzraum.jpg');
+}
+
+.bg-\[url\(\'\/images\/stanzraum\.png\'\)\] {
+  background-image: url('/images/stanzraum.png');
+}
+
+.bg-cover {
+  background-size: cover;
+}
+
 .fill-cyan-900 {
   fill: #164e63;
 }
@@ -1445,6 +1469,10 @@ select {
   padding-top: 0.75rem;
 }
 
+.pt-5 {
+  padding-top: 1.25rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -1541,6 +1569,11 @@ select {
   color: rgb(225 29 72 / var(--tw-text-opacity));
 }
 
+.text-rose-700 {
+  --tw-text-opacity: 1;
+  color: rgb(190 18 60 / var(--tw-text-opacity));
+}
+
 .text-rose-900 {
   --tw-text-opacity: 1;
   color: rgb(136 19 55 / var(--tw-text-opacity));
@@ -1574,11 +1607,6 @@ select {
 .text-zinc-900 {
   --tw-text-opacity: 1;
   color: rgb(24 24 27 / var(--tw-text-opacity));
-}
-
-.text-rose-700 {
-  --tw-text-opacity: 1;
-  color: rgb(190 18 60 / var(--tw-text-opacity));
 }
 
 .antialiased {

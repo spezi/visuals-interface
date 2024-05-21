@@ -41,12 +41,26 @@
               <td>LED size</td>
               <td>
                 <div class="w-55 flex">
-                  <div class="w-20">
+                  <div class="">
                     <.input type="number" name="led_width" id="led_width" class="" value={@led_width} />
                   </div>
                   <span class="inline-block pt-3 m-1 text-lg align-middle">/</span>
-                  <div class="w-20">
+                  <div class="">
                     <.input type="number" name="led_height" id="led_height" class="" value={@led_height} />
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>LED size Hyperion</td>
+              <td>
+                <div class="w-55 flex">
+                  <div class="overflow-hidden pt-5">
+                    <%= Map.get(List.first(@leds), "hmax") - Map.get(List.first(@leds), "hmin") %>
+                  </div>
+                  <span class="inline-block pt-3 m-1 text-lg align-middle">/</span>
+                  <div class="overflow-hidden pt-5">
+                    <%= Map.get(List.first(@leds), "vmax") - Map.get(List.first(@leds), "vmin") %>
                   </div>
                 </div>
               </td>
@@ -64,7 +78,7 @@
   </div>
   <div class="basis-3/4">
     <h3>Mapping</h3>
-    <div id="mapping" class="w-full aspect-[16/9] bg-slate-100 relative" phx-hook="MeasureDiv"> 
+    <div id="mapping" class="bg-[url('/images/stanzraum.png')] bg-opacity-25 bg-cover w-full aspect-[16/9] bg-slate-100 relative" phx-hook="MeasureDiv"> 
         
           <!--<div 
             id="draggable"
@@ -102,6 +116,15 @@
             raw(pretty_json) 
           %>
         </pre>
+    </div>
+    <div class="basis-1/4">
+        <pre>
+          <%=
+            pretty_json = Jason.encode!(@current_config, pretty: true)
+            raw(pretty_json) 
+          %>
+        </pre>
+
     </div>
     <div class="basis-1/4">
         <.input type="textarea" name="hyperion_format" id="hyperion_format" class="" value={Jason.encode!(@leds, pretty: true)} />

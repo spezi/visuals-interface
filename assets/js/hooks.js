@@ -2,7 +2,6 @@ let Hooks = {}
 
 Hooks.MeasureDiv = {
   mounted() {
-    
     window.addEventListener("resize", () => this.measureAndPushSize());
     this.measureAndPushSize();
     this.getPosition();
