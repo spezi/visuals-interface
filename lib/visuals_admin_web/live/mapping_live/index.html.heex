@@ -26,8 +26,7 @@
       <h3>Selected:
         <%=
           active_instance = Enum.find(@serverinfo["instance"], fn map -> map["instance"] == @selected end)
-          friendly_name = active_instance["friendly_name"]
-          friendly_name
+          active_instance["friendly_name"]
         %>
       </h3>
       <.form phx-change="size_change">
@@ -65,6 +64,21 @@
                 </div>
               </td>
             </tr>
+          
+            <tr>
+              <td>Point Distance</td>
+              <td>
+                  <%= @point_messure %>
+              </td>
+            </tr>
+
+            <tr>
+              <td>max size</td>
+              <td>
+                  <%= @point_messure/length(@leds) %>
+              </td>
+            </tr>
+           
           </tbody>
         </table>
             <button phx-disable-with="Saving..." class="px-4 py-2 font-semibold text-sm bg-cyan-500 text-white rounded-full shadow-sm" phx-click="save" phx-value-instance={@selected} >
@@ -95,12 +109,31 @@
                 phx-value-hmin={led_pixel.hmin}
                 phx-value-vmax={led_pixel.vmax}
                 phx-value-vmin={led_pixel.vmin}
+                phx-value-width={@led_width}
+                phx-value-height={@led_height}
               >
               
               </div>
             <% end %>
           <!--</div>--> 
-        
+
+          <div 
+            :if={@selected} 
+            id="startpoint" 
+            class="z-10 point absolute bg-orange-300" 
+            phx-hook="Points" 
+            style={"top: #{Map.get(@verticies, "y1", 0)}; left: #{Map.get(@verticies, "x1", 0)};"} 
+          >
+          </div>
+          <div 
+            :if={@selected} 
+            id="endpoint" 
+            class="z-10 point absolute bg-orange-300" 
+            phx-hook="Points" 
+            style={"top: #{Map.get(@verticies, "y2", 0)}; left: #{Map.get(@verticies, "x2", 0)};"} 
+          >
+          </div>
+
     </div>
     <div class="text-sm">size: <%= @size.width %>/<%= @size.height %> </div>
   </div>

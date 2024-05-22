@@ -23,6 +23,7 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 import Hooks from "./hooks";
+import makeDraggable from "./drag";
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {hooks: Hooks, params: {_csrf_token: csrfToken}})
@@ -52,20 +53,69 @@ svg.setAttribute('width', '100%');
 svg.setAttribute('height', '100%');
 svg.setAttribute('class', 'z-0 absolute');
 
+function place_points(leds) { 
+    
+    let first = leds[0]
+    let last = leds[leds.length -1]
+
+    /*
+    console.log(leds)
+    console.log(first)
+    console.log(last)
+    console.log(first.getAttribute('phx-value-width'))
+    console.log(first.getAttribute('phx-value-height'))
+    console.log(first.getAttribute('phx-value-vmin'))
+    console.log(parseFloat(first.getAttribute('phx-value-vmin')) + parseFloat(first.getAttribute('phx-value-height')))
+    */
+
+    // Get the bounding rectangle of the div
+    //let rect_first = first.getBoundingClientRect();
+    //let rect_last = last.getBoundingClientRect();
+
+    let start_point = document.getElementById('startpoint');
+    let end_point = document.getElementById('endpoint');
+
+    start_point.style.top = (parseFloat(first.getAttribute('phx-value-vmin')) + (parseFloat(first.getAttribute('phx-value-height'))/2 - 6 )) + 'px';
+    start_point.style.left = (parseFloat(first.getAttribute('phx-value-hmin')) + (parseFloat(first.getAttribute('phx-value-width'))/2 - 6 )) + 'px';
+    end_point.style.top = (parseFloat(last.getAttribute('phx-value-vmin')) + (parseFloat(last.getAttribute('phx-value-height'))/2 - 6 )) + 'px';
+    end_point.style.left = (parseFloat(last.getAttribute('phx-value-hmin')) + (parseFloat(last.getAttribute('phx-value-width'))/2 - 6 )) + 'px';
+
+    makeDraggable(start_point);
+    makeDraggable(end_point);
+
+    window.dispatchEvent(point_event, {id: 'startpoint', left: start_point.style.left, top: start_point.style.top});
+    window.dispatchEvent(point_event, {id: 'endpoint', left: end_point.style.left, top: end_point.style.top});
+ }
+
 
 //document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener("phx:select-stripe", (e) => {
     console.log("select stripe")
     console.log(e)
-
+    
     let leds = container.querySelectorAll('.led');
-    let first = leds[0]
-    let last = leds[leds.length -1]
-
-    //console.log(leds)
-    console.log(first)
-    console.log(last)
+    if( leds.length > 0 ) {
+        place_points(leds);
+    }
+    let points = container.querySelectorAll('.point');
+    //console.log(points)
+    points.forEach(point => {
+        makeDraggable(point);
+    });
 });
+
+
+//document.addEventListener('DOMContentLoaded', function() {
+window.addEventListener("phx:resize-window", (e) => {
+    console.log("select stripe")
+    console.log(e)
+   
+    let leds = container.querySelectorAll('.led');
+    if( leds.length > 0 ) {
+        place_points(leds);
+    }
+});
+
 
 //document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener("phx:select-stripe_bak", (e) => {
@@ -124,41 +174,9 @@ window.addEventListener("phx:select-stripe_bak", (e) => {
         //console.log(container)
         //<svg width="500" height="500"><line x1="50" y1="50" x2="350" y2="350" stroke="black"/></svg>
     });
-    });
+});
 
 
-// Function to make an element draggable
-function makeDraggable(element) {
-    let isDragging = false;
-    let offsetX = 0;
-    let offsetY = 0;
-
-    element.addEventListener('mousedown', (event) => {
-        isDragging = true;
-        offsetX = event.clientX - element.getBoundingClientRect().left;
-        offsetY = event.clientY - element.getBoundingClientRect().top;
-    });
-
-    document.addEventListener('mousemove', (event) => {
-        if (isDragging) {
-            const containerRect = container.getBoundingClientRect();
-            let newX = event.clientX - containerRect.left - offsetX;
-            let newY = event.clientY - containerRect.top - offsetY;
-            console.log(newX)
-            // Constrain the draggable element within the container
-            newX = Math.max(0, Math.min(container.clientWidth - element.clientWidth, newX));
-            newY = Math.max(0, Math.min(container.clientHeight - element.clientHeight, newY));
-
-            element.style.left = newX + 'px';
-            element.style.top = newY + 'px';
-        }
-    });
-
-    document.addEventListener('mouseup', () => {
-
-        isDragging = false;
-    });
-}
 
 
 

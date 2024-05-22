@@ -49,6 +49,9 @@ defmodule VisualsAdminWeb.MappingLive.Index do
       |> assign(:selected, nil)
       |> assign(:led_width, nil)
       |> assign(:led_height, nil)
+      |> assign(:point_messure, 0.0)
+      |> assign(:verticies, %{})
+
     }
   end
 
@@ -255,7 +258,7 @@ defmodule VisualsAdminWeb.MappingLive.Index do
         %{"error" => reason, "leds" => []}
     end
 
-    dbg(current_config)
+    #dbg(current_config)
 
 
     leds = case current_config["success"] do
@@ -315,10 +318,11 @@ defmodule VisualsAdminWeb.MappingLive.Index do
 
     IO.puts("size: #{inspect(size)}")
     {:noreply, socket
-      |> assign(size: size)
-      |> assign(leds_pixel: leds_pixel)
+      |> assign(:size, size)
+      |> assign(:leds_pixel, leds_pixel)
       |> assign(:led_width, led_width)
       |> assign(:led_height, led_height)
+      |> push_event("resize-window", %{})
     }
   end
 
@@ -331,6 +335,104 @@ defmodule VisualsAdminWeb.MappingLive.Index do
     }
     IO.puts("size: #{inspect(position)}")
     {:noreply, assign(socket, position: position)}
+  end
+
+  def handle_event("points_messured", %{"distance" => distance, "verticies" => verticies}, socket) do
+    dbg("points_messured")
+    dbg(distance)
+    dbg(verticies)
+
+    #verticies #=> %{
+    #  "endRect" => %{"x2" => 1755.828125, "y2" => 222.53125},
+    #  "startRect" => %{"x1" => 580.671875, "y1" => 446.53125}
+    #}
+
+    #{:noreply, socket
+    #  |> push_event("messure_ready", %{"distance" => distance, "verticies" => verticies})
+    #}
+
+    #led_pixel #=> %{
+      #  width: 3.687750000000051,
+      #  height: 15.360824742268042,
+      #  vmin: 0.0,
+      #  hmin: 1113.81225,
+      #  hmax: 1117.5,
+      #  vmax: 15.360824742268042
+      #}
+
+      #verticies #=> %{
+      #  "x1" => "21.8594px",
+      #  "x2" => "512.641px",
+      #  "y1" => "236.141px",
+      #  "y2" => "237.141px"
+      #}
+
+    max_size = socket.assigns.point_messure/length(socket.assigns.leds)
+
+    pixel_bevore = %{
+      width: max_size,
+      height: max_size,
+      vmin: parseFloat(Map.get(verticies, "x1")),
+      hmin: parseFloat(Map.get(verticies, "y1")),
+      hmax: parseFloat(Map.get(verticies, "y1")),
+      vmax: parseFloat(Map.get(verticies, "x1"))
+    }
+
+    #first_led = true
+    #leds_move = for led_pixel <- socket.assigns.leds_pixel do
+    #  pixel_bevore = case first_led do
+    #      true ->
+    #        %{
+    #        width: max_size,
+    #        height: max_size,
+    #        vmin: parseFloat(Map.get(verticies, "x1")),
+    #        hmin: parseFloat(Map.get(verticies, "y1")),
+     #       hmax: parseFloat(Map.get(verticies, "y1")) + max_size,
+    #        vmax: parseFloat(Map.get(verticies, "x1")) + max_size
+    #        }
+    #      _ ->
+    #        %{
+    #        width: max_size,
+    #        height: max_size,
+    #        vmin: Map.get(pixel_bevore, :vmin) + max_size,
+    #        hmin: Map.get(pixel_bevore, :hmin) + max_size,
+    #        hmax: Map.get(pixel_bevore, :hmax) + max_size * 2,
+    #        vmax: Map.get(pixel_bevore, :vmax) + max_size * 2
+    #        }
+    #    end
+
+    #    dbg(pixel_bevore)
+    #    pixel_bevore
+        #dbg(led_pixel)
+    #end
+
+    start_coords = { pixel_bevore.vmin, pixel_bevore.hmin }
+    end_coords = { pixel_bevore.vmax, pixel_bevore.hmax }
+
+    leds_interpolate = interpolate_coords(start_coords, end_coords, length(socket.assigns.leds), max_size)
+    dbg(leds_interpolate)
+
+    {:noreply, socket
+     |> assign(:point_messure, distance)
+     |> assign(:verticies, verticies)
+     |> assign(:leds_pixel, leds_interpolate)
+    }
+  end
+
+  defp interpolate_coords({x1, y1}, {x2, y2}, num_divs, max_size) do
+    step_x = (x2 - x1) / (num_divs - 1)
+    step_y = (y2 - y1) / (num_divs - 1)
+
+    for i <- 0..(num_divs - 1) do
+      %{:vmin => y1 + i * step_x, :hmin => x1 + i * step_y, :vmax => y1 + i * step_y + max_size, :hmax => x1 + i * step_y + max_size }
+    end
+  end
+
+  def parseFloat(string) do
+    case Float.parse("34") do
+      {value, str_rest} -> value
+      _ -> 0
+    end
   end
 
 end
