@@ -36,7 +36,7 @@ defmodule VisualsAdmin.Hyperion do
     url = "http://127.0.0.1:8090/json-rpc"
     headers = [
       {"Content-Type", "application/json"},
-      {"Authorization", "token 2c5717af-bc01-4400-872a-c01767b1075e"}
+      {"Authorization", "token 58208a8f-eaaa-4fac-b644-f164fc46ff21"}
     ]
     body = Jason.encode!(payload)
     #dbg(headers)
@@ -165,7 +165,9 @@ defmodule VisualsAdmin.Hyperion do
         dbg(from)
         dbg(to)
 
-        "top: #{elem(from, 0)}px; left: #{elem(from, 1)}px; width: #{elem(to, 1) - elem(from, 1)}px; height: #{elem(to, 0) - elem(from, 0)}px;"
+        #"top: #{elem(from, 0)}px; left: #{elem(from, 1)}px; width: #{elem(to, 1) - elem(from, 1)}px; height: #{elem(to, 0) - elem(from, 0)}px;"
+        "top: #{elem(from, 0)}px; left: #{elem(from, 1)}px; height: #{elem(to, 0) - elem(from, 0)}px; width: #{elem(to, 1) - elem(from, 1)}px;"
+       
     end
     #from = coordinate_to_pixel(first_led["vmin"], size.height)
     #from = {coordinate_to_pixel(first_led, size.width), coordinate_to_pixel(first_led, size.height)}
@@ -177,7 +179,7 @@ defmodule VisualsAdmin.Hyperion do
   def parse_to_number(string) do
     case Float.parse(string) do
       {float, _} -> float
-      nil -> parse_integer(string)
+        nil -> parse_integer(string)
       :error -> 0.0
     end
   end

@@ -104,7 +104,7 @@
             <%= for led_pixel <- @leds_pixel do %>
               <div 
                 class={"bg-blue-300 absolute led"}
-                style={"width: #{@led_width}px; height: #{@led_height}px; top: #{led_pixel.vmin}px; left: #{led_pixel.hmin}px;"}
+                style={"width: #{led_pixel.hmax - led_pixel.hmin}px; height: #{led_pixel.vmax - led_pixel.vmin}px; top: #{led_pixel.vmin}px; left: #{led_pixel.hmin}px;"}
                 phx-value-hmax={led_pixel.hmax}
                 phx-value-hmin={led_pixel.hmin}
                 phx-value-vmax={led_pixel.vmax}
@@ -120,17 +120,17 @@
           <div 
             :if={@selected} 
             id="startpoint" 
-            class="z-10 point absolute bg-orange-300" 
+            class="z-10 point absolute" 
             phx-hook="Points" 
-            style={"top: #{Map.get(@verticies, "y1", 0)}; left: #{Map.get(@verticies, "x1", 0)};"} 
+            style={"top: #{Map.get(@verticies, "y1", 0)}; left: #{Map.get(@verticies, "x1", 0)}; background-color: blue;"} 
           >
           </div>
           <div 
             :if={@selected} 
             id="endpoint" 
-            class="z-10 point absolute bg-orange-300" 
+            class="z-10 point absolute" 
             phx-hook="Points" 
-            style={"top: #{Map.get(@verticies, "y2", 0)}; left: #{Map.get(@verticies, "x2", 0)};"} 
+            style={"top: #{Map.get(@verticies, "y2", 0)}; left: #{Map.get(@verticies, "x2", 0)}; background-color: red;"} 
           >
           </div>
 

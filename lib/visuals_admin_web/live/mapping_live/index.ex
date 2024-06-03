@@ -170,7 +170,7 @@ defmodule VisualsAdminWeb.MappingLive.Index do
       "tan" => 1
     }
 
-    #load initial Hyperion config
+    #save Hyperion config
     save = case Hyperion.post_json(payload) do
       {:ok, response} ->
         response
@@ -342,80 +342,52 @@ defmodule VisualsAdminWeb.MappingLive.Index do
     dbg(distance)
     dbg(verticies)
 
-    #verticies #=> %{
-    #  "endRect" => %{"x2" => 1755.828125, "y2" => 222.53125},
-    #  "startRect" => %{"x1" => 580.671875, "y1" => 446.53125}
-    #}
-
-    #{:noreply, socket
-    #  |> push_event("messure_ready", %{"distance" => distance, "verticies" => verticies})
-    #}
-
-    #led_pixel #=> %{
-      #  width: 3.687750000000051,
-      #  height: 15.360824742268042,
-      #  vmin: 0.0,
-      #  hmin: 1113.81225,
-      #  hmax: 1117.5,
-      #  vmax: 15.360824742268042
-      #}
-
-      #verticies #=> %{
-      #  "x1" => "21.8594px",
-      #  "x2" => "512.641px",
-      #  "y1" => "236.141px",
-      #  "y2" => "237.141px"
-      #}
-
     max_size = socket.assigns.point_messure/length(socket.assigns.leds)
 
-    pixel_bevore = %{
-      width: max_size,
-      height: max_size,
-      vmin: parseFloat(Map.get(verticies, "x1")),
-      hmin: parseFloat(Map.get(verticies, "y1")),
-      hmax: parseFloat(Map.get(verticies, "y1")),
-      vmax: parseFloat(Map.get(verticies, "x1"))
-    }
+    dbg(verticies)
 
-    #first_led = true
-    #leds_move = for led_pixel <- socket.assigns.leds_pixel do
-    #  pixel_bevore = case first_led do
-    #      true ->
-    #        %{
-    #        width: max_size,
-    #        height: max_size,
-    #        vmin: parseFloat(Map.get(verticies, "x1")),
-    #        hmin: parseFloat(Map.get(verticies, "y1")),
-     #       hmax: parseFloat(Map.get(verticies, "y1")) + max_size,
-    #        vmax: parseFloat(Map.get(verticies, "x1")) + max_size
-    #        }
-    #      _ ->
-    #        %{
-    #        width: max_size,
-    #        height: max_size,
-    #        vmin: Map.get(pixel_bevore, :vmin) + max_size,
-    #        hmin: Map.get(pixel_bevore, :hmin) + max_size,
-    #        hmax: Map.get(pixel_bevore, :hmax) + max_size * 2,
-    #        vmax: Map.get(pixel_bevore, :vmax) + max_size * 2
-    #        }
-    #    end
+    start_coords = { parseFloat(Map.get(verticies, "x1")), parseFloat(Map.get(verticies, "y1")) }
+    end_coords = { parseFloat(Map.get(verticies, "x2")), parseFloat(Map.get(verticies, "y2")) }
 
-    #    dbg(pixel_bevore)
-    #    pixel_bevore
-        #dbg(led_pixel)
-    #end
-
-    start_coords = { pixel_bevore.vmin, pixel_bevore.hmin }
-    end_coords = { pixel_bevore.vmax, pixel_bevore.hmax }
+    dbg(start_coords)
+    dbg(end_coords)
 
     leds_interpolate = interpolate_coords(start_coords, end_coords, length(socket.assigns.leds), max_size)
-    dbg(leds_interpolate)
+    #dbg(leds_interpolate)
+
+    #################################
+    leds_pixel_calc = Enum.map(leds_interpolate, fn led ->
+      vmax = led.vmin + max_size
+      hmax = led.hmin + max_size
+      #dbg(led)
+      %{
+        hmax: hmax,
+        hmin: led.hmin,
+        vmax: vmax,
+        vmin: led.vmin
+      }
+    end)
+
+    leds = Enum.map(leds_pixel_calc, fn led ->
+      {:ok, led_coordinates} = VisualsAdmin.Hyperion.get_led_coordinates(led, socket.assigns.size, socket.assigns.position)
+
+        #dbg(led_coordinates)
+
+      %{
+        "hmax" => led_coordinates.hmax,
+        "hmin" => led_coordinates.hmin,
+        "vmax" => led_coordinates.vmax,
+        "vmin" => led_coordinates.vmin
+      }
+
+    end)
+    #####################################################################
 
     {:noreply, socket
      |> assign(:point_messure, distance)
      |> assign(:verticies, verticies)
      |> assign(:leds_pixel, leds_interpolate)
+     |> assign(:leds, leds)
     }
   end
 
@@ -423,13 +395,25 @@ defmodule VisualsAdminWeb.MappingLive.Index do
     step_x = (x2 - x1) / (num_divs - 1)
     step_y = (y2 - y1) / (num_divs - 1)
 
+    dbg({x1, y1})
+    dbg({x2, y2})
+
+    #for i <- 0..(num_divs - 1) do
+    #  {x1 + i * step_x, y1 + i * step_y}
+    #end
+
+    #for i <- 0..(num_divs - 1) do
+    #  %{:vmin => x1 + i * step_x, :hmin => y1 + i * step_y, :vmax => x1 + i * step_x + max_size, :hmax => y1 + i * step_y + max_size }
+    #end
+
     for i <- 0..(num_divs - 1) do
-      %{:vmin => y1 + i * step_x, :hmin => x1 + i * step_y, :vmax => y1 + i * step_y + max_size, :hmax => x1 + i * step_y + max_size }
+      %{:vmin => y1 + i * step_y, :hmin => x1 + i * step_x, :vmax => y1 + i * step_y + max_size, :hmax => x1 + i * step_x + max_size }
     end
+
   end
 
   def parseFloat(string) do
-    case Float.parse("34") do
+    case Float.parse(string) do
       {value, str_rest} -> value
       _ -> 0
     end
