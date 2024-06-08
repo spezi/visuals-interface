@@ -5,7 +5,7 @@ defmodule VisualsAdminWeb.MappingLive.Index do
   alias VisualsAdmin.Hyperion.Mapping
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
 
     #http://192.168.1.28:8090/json-rpc
 
@@ -51,6 +51,7 @@ defmodule VisualsAdminWeb.MappingLive.Index do
       |> assign(:led_height, nil)
       |> assign(:point_messure, 0.0)
       |> assign(:verticies, %{})
+      |> assign(:debug, Map.has_key?(params, "debug"))
 
     }
   end

@@ -3,8 +3,8 @@
 </.header>
 
 <div class="flex flex-row">
-  <div :if={@hyperion_connected} class="basis-1/4">
-    <h3>LED Instances</h3> 
+  <div :if={@hyperion_connected} class="basis-1/4 p-5">
+    <h2>LED Instances</h2> 
     <div>
         <%= for instance <- @serverinfo["instance"] do %>
             <button 
@@ -23,12 +23,12 @@
     <hr class="mt-2 mb-2">
 
     <div :if={@selected}>
-      <h3>Selected:
+      <h2>Selected:
         <%=
           active_instance = Enum.find(@serverinfo["instance"], fn map -> map["instance"] == @selected end)
           active_instance["friendly_name"]
         %>
-      </h3>
+      </h2>
       <.form phx-change="size_change">
         <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
           <tbody>
@@ -90,8 +90,8 @@
   <div :if={!@hyperion_connected} class="basis-1/4 text-rose-700">
     Hyperion not reachable !!
   </div>
-  <div class="basis-3/4">
-    <h3>Mapping</h3>
+  <div class="basis-3/4 p-5">
+    <h2>Mapping</h2>
     <div id="mapping" class="bg-[url('/images/stanzraum.png')] bg-opacity-25 bg-cover w-full aspect-[16/9] bg-slate-100 relative" phx-hook="MeasureDiv"> 
         
           <!--<div 
@@ -138,11 +138,13 @@
     <div class="text-sm">size: <%= @size.width %>/<%= @size.height %> </div>
   </div>
 </div>
-<hr class="mt-10">
-<div id="debug">
-  <h3>debug</h3>
+
+<div :if={@debug} id="debug">
+  <hr class="mt-10">
+  <h1>debug</h1>
   <div class="flex">
     <div class="basis-1/4">
+        <h2>Hyperion Serverinfo</h2>
         <pre>
           <%=
             pretty_json = Jason.encode!(@serverinfo, pretty: true)
@@ -151,6 +153,7 @@
         </pre>
     </div>
     <div class="basis-1/4">
+        <h2>Hyperion Current Config</h2>
         <pre>
           <%=
             pretty_json = Jason.encode!(@current_config, pretty: true)
@@ -160,6 +163,7 @@
 
     </div>
     <div class="basis-1/4">
+      <h2>Hyperion current led config led`s</h2>
         <.input type="textarea" name="hyperion_format" id="hyperion_format" class="" value={Jason.encode!(@leds, pretty: true)} />
         <pre>
           <%=
